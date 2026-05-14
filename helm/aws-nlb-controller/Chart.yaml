@@ -1,0 +1,14 @@
+apiVersion: v2
+name: aws-nlb-controller
+description: A Kubernetes controller for sharing one AWS Network Load Balancer across multiple Services.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - aws
+  - nlb
+  - kubernetes
+  - controller
+  - load-balancer
+sources:
+  - https://github.com/luomo/aws-nlb-controller

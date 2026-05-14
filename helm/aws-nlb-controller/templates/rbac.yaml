@@ -1,0 +1,45 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "aws-nlb-controller.fullname" . }}
+  labels:
+    {{- include "aws-nlb-controller.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services/status"]
+    verbs: ["update", "patch"]
+  - apiGroups: ["elbv2.k8s.aws"]
+    resources: ["targetgroupbindings"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["elbv2.k8s.aws"]
+    resources: ["targetgroupbindings/status"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "endpoints", "events"]
+    verbs: ["get", "list", "watch", "create", "patch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "aws-nlb-controller.fullname" . }}
+  labels:
+    {{- include "aws-nlb-controller.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "aws-nlb-controller.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "aws-nlb-controller.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

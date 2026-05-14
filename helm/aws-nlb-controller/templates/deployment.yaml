@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aws-nlb-controller.fullname" . }}
+  labels:
+    {{- include "aws-nlb-controller.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "aws-nlb-controller.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "aws-nlb-controller.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "aws-nlb-controller.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: controller
+          image: {{ include "aws-nlb-controller.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --cluster-name={{ required "controller.clusterName is required" .Values.controller.clusterName }}
+            - --leader-election-id={{ .Values.controller.leaderElectionID }}
+            {{- if .Values.controller.aws.region }}
+            - --aws-region={{ .Values.controller.aws.region }}
+            {{- end }}
+            {{- if .Values.controller.aws.vpcID }}
+            - --aws-vpc-id={{ .Values.controller.aws.vpcID }}
+            {{- end }}
+            {{- if .Values.controller.aws.vpcTags }}
+            - --aws-vpc-tags={{ include "aws-nlb-controller.awsVPCTags" . }}
+            {{- end }}
+            {{- if .Values.controller.aws.endpointURLs }}
+            - --aws-api-endpoints={{ include "aws-nlb-controller.awsEndpointURLs" . }}
+            {{- end }}
+            {{- range .Values.controller.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          ports:
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+            - name: healthz
+              containerPort: 61779
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: healthz
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}

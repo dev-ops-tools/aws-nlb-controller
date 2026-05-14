@@ -1,0 +1,67 @@
+# Default values for aws-nlb-controller.
+# 默认配合官方 aws-load-balancer-controller 一起使用，复用其 ServiceAccount 和 IRSA。
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/dev-ops-tools/aws-nlb-controller
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# 复用官方 aws-load-balancer-controller 的 ServiceAccount。
+# 需安装在同一 namespace 下，且官方 controller 已创建好 SA 并配置 IRSA。
+serviceAccount:
+  name: "aws-load-balancer-controller"
+
+# 仍然创建自己的 ClusterRole/ClusterRoleBinding 补齐官方 RBAC 中缺失的
+# targetgroupbindings/status get、leader election lease 全量操作等权限，
+# 绑定到与官方相同的 ServiceAccount。
+rbac:
+  create: true
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+priorityClassName: ""
+
+controller:
+  clusterName: ""
+  leaderElectionID: "aws-nlb-controller-leader"
+  aws:
+    region: ""
+    # vpcID / vpcTags: at least one required if EC2 metadata is unavailable
+    vpcID: ""
+    vpcTags: {}
+    endpointURLs: {}
+  # 其他参数通过 extraArgs 传入，例如:
+  # extraArgs:
+  #   - --log-level=debug
+  #   - --default-target-type=ip
+  extraArgs: []
+
+serviceMonitor:
+  enabled: false
+  labels: {}

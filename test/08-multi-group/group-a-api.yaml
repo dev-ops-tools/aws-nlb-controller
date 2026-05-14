@@ -1,0 +1,41 @@
+# Independent NLB group "group-a"
+apiVersion: v1
+kind: Service
+metadata:
+  name: ga-api
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "group-a"
+    nlb.k8s.aws/scheme: "internal"
+    nlb.k8s.aws/target-type: "ip"
+spec:
+  type: ClusterIP
+  selector:
+    app: ga-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ga-api
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ga-api
+  template:
+    metadata:
+      labels:
+        app: ga-api
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 8080

@@ -1,0 +1,41 @@
+# Service in namespace "prod" — port 81, same shared NLB
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared-worker
+  namespace: prod
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "cross-ns-group"
+    nlb.k8s.aws/scheme: "internal"
+    nlb.k8s.aws/target-type: "ip"
+spec:
+  type: ClusterIP
+  selector:
+    app: shared-worker
+  ports:
+    - name: http
+      port: 81
+      targetPort: 8081
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-worker
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-worker
+  template:
+    metadata:
+      labels:
+        app: shared-worker
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 8081

@@ -1,0 +1,41 @@
+# Second service in group-a
+apiVersion: v1
+kind: Service
+metadata:
+  name: ga-worker
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "group-a"
+    nlb.k8s.aws/scheme: "internal"
+    nlb.k8s.aws/target-type: "ip"
+spec:
+  type: ClusterIP
+  selector:
+    app: ga-worker
+  ports:
+    - name: grpc
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ga-worker
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ga-worker
+  template:
+    metadata:
+      labels:
+        app: ga-worker
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 9090

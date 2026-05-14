@@ -1,0 +1,13 @@
+AWS NLB Controller has been installed.
+
+The controller watches Services with:
+  nlb.k8s.aws/enabled: "true"
+  nlb.k8s.aws/shared-nlb-name: <cluster-wide-shared-name>
+
+AWS deployment mode: {{ .Values.controller.enableAWSDeploy }}
+
+Example Service annotations:
+  nlb.k8s.aws/enabled: "true"
+  nlb.k8s.aws/shared-nlb-name: "payments"
+  nlb.k8s.aws/scheme: "internal"
+  nlb.k8s.aws/target-type: "ip"

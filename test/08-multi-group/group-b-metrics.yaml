@@ -1,0 +1,42 @@
+# Independent NLB group "group-b" — different NLB
+apiVersion: v1
+kind: Service
+metadata:
+  name: gb-metrics
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "group-b"
+    nlb.k8s.aws/scheme: "internet-facing"
+    nlb.k8s.aws/target-type: "ip"
+    nlb.k8s.aws/ip-address-type: "ipv4"
+spec:
+  type: ClusterIP
+  selector:
+    app: gb-metrics
+  ports:
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gb-metrics
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gb-metrics
+  template:
+    metadata:
+      labels:
+        app: gb-metrics
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 9090

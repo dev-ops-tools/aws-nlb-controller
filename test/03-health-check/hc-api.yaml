@@ -1,0 +1,55 @@
+# Service with full HTTP health check configuration
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-api
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "hc-group"
+    nlb.k8s.aws/scheme: "internal"
+    nlb.k8s.aws/target-type: "ip"
+    nlb.k8s.aws/healthcheck-protocol: "HTTP"
+    nlb.k8s.aws/healthcheck-port: "traffic-port"
+    nlb.k8s.aws/healthcheck-path: "/readyz"
+    nlb.k8s.aws/healthcheck-success-codes: "200-299"
+    nlb.k8s.aws/healthcheck-interval: "15"
+    nlb.k8s.aws/healthcheck-timeout: "5"
+    nlb.k8s.aws/healthcheck-healthy-threshold: "2"
+    nlb.k8s.aws/healthcheck-unhealthy-threshold: "4"
+spec:
+  type: ClusterIP
+  selector:
+    app: hc-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hc-api
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hc-api
+  template:
+    metadata:
+      labels:
+        app: hc-api
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

@@ -1,0 +1,44 @@
+# Second service in the dualstack group — must use same scheme/tags/attributes
+apiVersion: v1
+kind: Service
+metadata:
+  name: ds-admin
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "ds-group"
+    nlb.k8s.aws/scheme: "internet-facing"
+    nlb.k8s.aws/target-type: "ip"
+    nlb.k8s.aws/ip-address-type: "dualstack"
+    nlb.k8s.aws/tags: "team=platform,env=staging"
+    nlb.k8s.aws/attributes: "load_balancing.cross_zone.enabled=true"
+spec:
+  type: ClusterIP
+  selector:
+    app: ds-admin
+  ports:
+    - name: admin
+      port: 8443
+      targetPort: 8443
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ds-admin
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ds-admin
+  template:
+    metadata:
+      labels:
+        app: ds-admin
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 8443

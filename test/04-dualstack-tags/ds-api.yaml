@@ -1,0 +1,49 @@
+# Service with dualstack IP, tags, attributes and full annotation set
+apiVersion: v1
+kind: Service
+metadata:
+  name: ds-api
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "ds-group"
+    nlb.k8s.aws/scheme: "internet-facing"
+    nlb.k8s.aws/target-type: "ip"
+    nlb.k8s.aws/ip-address-type: "dualstack"
+    nlb.k8s.aws/tags: "team=platform,env=staging"
+    nlb.k8s.aws/attributes: "load_balancing.cross_zone.enabled=true"
+    nlb.k8s.aws/target-group-attributes: "proxy_protocol_v2.enabled=true"
+    nlb.k8s.aws/healthcheck-protocol: "HTTP"
+    nlb.k8s.aws/healthcheck-port: "traffic-port"
+    nlb.k8s.aws/healthcheck-path: "/healthz"
+    nlb.k8s.aws/healthcheck-success-codes: "200-399"
+spec:
+  type: ClusterIP
+  selector:
+    app: ds-api
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ds-api
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ds-api
+  template:
+    metadata:
+      labels:
+        app: ds-api
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 8443

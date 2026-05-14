@@ -1,0 +1,50 @@
+# Single service in a shared NLB group — valid use case
+# Can add more services to this group later
+apiVersion: v1
+kind: Service
+metadata:
+  name: single-svc
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "single-group"
+    nlb.k8s.aws/scheme: "internal"
+    nlb.k8s.aws/target-type: "ip"
+    nlb.k8s.aws/healthcheck-protocol: "HTTP"
+    nlb.k8s.aws/healthcheck-port: "traffic-port"
+    nlb.k8s.aws/healthcheck-path: "/readyz"
+spec:
+  type: ClusterIP
+  selector:
+    app: single-svc
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: single-svc
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: single-svc
+  template:
+    metadata:
+      labels:
+        app: single-svc
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 8080
+            - containerPort: 9090

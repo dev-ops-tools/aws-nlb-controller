@@ -1,0 +1,41 @@
+# Worker service — same instance target group
+apiVersion: v1
+kind: Service
+metadata:
+  name: inst-worker
+  namespace: default
+  annotations:
+    nlb.k8s.aws/enabled: "true"
+    nlb.k8s.aws/shared-nlb-name: "inst-group"
+    nlb.k8s.aws/scheme: "internal"
+    nlb.k8s.aws/target-type: "instance"
+spec:
+  type: ClusterIP
+  selector:
+    app: inst-worker
+  ports:
+    - name: grpc
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inst-worker
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inst-worker
+  template:
+    metadata:
+      labels:
+        app: inst-worker
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 9090
