@@ -1,8 +1,13 @@
 # AWS NLB Controller
 
+[![Build](https://github.com/dev-ops-tools/aws-nlb-controller/actions/workflows/build.yml/badge.svg)](https://github.com/dev-ops-tools/aws-nlb-controller/actions)
+[![Go Version](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go)](go.mod)
+[![Docker](https://img.shields.io/badge/ghcr.io-latest-2496ED?logo=docker)](https://github.com/dev-ops-tools/aws-nlb-controller/pkgs/container/aws-nlb-controller)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 [English](README.md) | [测试用例](test/README.md)
 
-让多个 Kubernetes Service 共享同一个 AWS Network Load Balancer 的独立控制器。使用自定义注解 `nlb.k8s.aws/*`，底层委托官方 `aws-load-balancer-controller` 的 StackDeployer 部署资源。
+集群级共享 NLB —— 一个 NLB，多个 Service，零额外 AWS 成本。使用 `nlb.k8s.aws/*` 注解，委托官方 `aws-load-balancer-controller` 的 StackDeployer 部署，复用其 ServiceAccount 和 IRSA。
 
 ## 使用
 

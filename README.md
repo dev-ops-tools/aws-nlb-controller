@@ -1,8 +1,15 @@
 # AWS NLB Controller
 
+[![Build](https://github.com/dev-ops-tools/aws-nlb-controller/actions/workflows/build.yml/badge.svg)](https://github.com/dev-ops-tools/aws-nlb-controller/actions)
+[![Go Version](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go)](go.mod)
+[![Docker](https://img.shields.io/badge/ghcr.io-latest-2496ED?logo=docker)](https://github.com/dev-ops-tools/aws-nlb-controller/pkgs/container/aws-nlb-controller)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 [中文文档](README_CN.md) | [Test Cases](test/README_EN.md)
 
-A Kubernetes controller that lets multiple Services share a single AWS Network Load Balancer. Uses custom annotations (`nlb.k8s.aws/*`) and delegates deployment to the official `aws-load-balancer-controller` StackDeployer.
+Cluster-wide shared NLB for Kubernetes Services. One NLB, multiple Services, zero extra AWS cost.
+Uses `nlb.k8s.aws/*` annotations, delegates to the official `aws-load-balancer-controller` StackDeployer.
+Works alongside the official controller — reuses its ServiceAccount and IRSA.
 
 ## Usage
 
